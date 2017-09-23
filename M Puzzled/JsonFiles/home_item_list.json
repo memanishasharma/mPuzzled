@@ -1,0 +1,72 @@
+{"dataList":[
+			 {
+			 "title":"Mystery Solver",
+			 "image":"",
+			 "level":"Easy"
+			 },
+			 {
+			 "title":"Word Geek",
+			 "image":"",
+			 "level":"Easy",
+			 "sublevel":[
+						 {
+						 "id":"",
+						 "title":"Mystery Solver1",
+						 "image":"",
+						 "level":"Easy"
+						 },{
+						 "id":"",
+						 "title":"Mystery Solver2",
+						 "image":"",
+						 "level":"Easy"
+						 },{
+						 "id":"",
+						 "title":"Mystery Solver3",
+						 "image":"",
+						 "level":"Easy"
+						 }
+						 ]
+			 },
+			 {
+			 "title":"Math Puzzle",
+			 "image":"",
+			 "level":""
+			 },
+			 {
+			 "title":"Time Passer",
+			 "image":"",
+			 "level":""
+			 },
+			 {
+			 "title":"Match Maker",
+			 "image":"",
+			 "level":""
+			 },
+			 {
+			 "title":"Gamer",
+			 "image":"",
+			 "level":""
+			 },
+			 {
+			 "title":"Jigsaw",
+			 "image":"",
+			 "level":""
+			 },
+			 {
+			 "title":"Path Finder",
+			 "image":"",
+			 "level":""
+			 },
+			 {
+			 "title":"Riddle rider",
+			 "image":"",
+			 "level":""
+			 },
+			 {
+			 "title":"Reach Center",
+			 "image":"",
+			 "level":""
+			 }
+			 
+			 ]
+}
