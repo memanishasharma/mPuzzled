@@ -6,188 +6,453 @@
 //  Copyright © 2017 Manisha. All rights reserved.
 //
 
-import Foundation
+//
+//  CircularMaze.playground
+//
+//
+//  Created by Lucas Louca on 04/04/15 - www.lucaslouca.com
+//
+//  Copyright (c) 2015 Lucas Louca. All rights reserved.
+
 import SpriteKit
+import Foundation
 
-// Class representing a grid, where elements can be accessed using [x,y] subscript syntax
-class Grid<T> {
-	var matrix:[T]
-	var rows:Int
-	var columns:Int
-	
-	init(rows:Int, columns:Int, defaultValue:T) {
-		self.rows = rows
-		self.columns = columns
-		matrix = Array(repeating:defaultValue,count:(rows*columns))
-	}
-	
-	func indexIsValidForRow(row: Int, column: Int) -> Bool {
-		return row >= 0 && row < rows && column >= 0 && column < columns
-	}
-	
-	subscript(col:Int, row:Int) -> T {
-		get{
-			assert(indexIsValidForRow(row: row, column: col), "Index out of range")
-			return matrix[Int(columns * row + col)]
-		}
-		set{
-			assert(indexIsValidForRow(row: row, column: col), "Index out of range")
-			matrix[(columns * row) + col] = newValue
-		}
-	}
-}
-
-// Class representing a Maze
 class Maze {
-	// Walls. [x,y] is true if there is a wall up/right/down/left of [x,y]
-	var up      :Grid<Bool>
-	var right   :Grid<Bool>
-	var down    :Grid<Bool>
-	var left    :Grid<Bool>
-	
-	// Visited cells
-	var visitedCells :Grid<Bool>
+	// Constants
+	let TwoPi = CGFloat(2.0 * Double.pi)
 	
 	// View on which we will draw our maze
 	var view:UIView!
 	
-	/**
-	Init method.
+	// Enum indicating the target direction when we are going to generate the path
+	enum Direction {
+		case LEFT
+		case UP
+		case RIGHT
+		case DOWN
+		case UPDIAGONAL
+		case NULLNODE
+	}
 	
-	:param: gridSize Int indicating the width and hight of the maze in number of cells, with width = height = gridSize
-	:param: screenSize Int indicating the width and hight of the view, with width = height = screenSize
-	*/
-	init(gridSize: Int, screenSize: Int) {
+	// Sector class represending the sector at a given track and index. A sector consists of
+	// an inner(smaller) arc, an outer(bigger) arc and two lines joining the arc end-points.
+	// The upper end-point of the inner arc is joined with the upper end-point of the outer arc with a line.
+	// Similarly the lower end-point of the inner arc is joined with the lower end-point of the outer arc with a line.
+	class Sector {
+		var innerArcXU:Int = 0
+		var innerArcXD:Int = 0
+		var innerArcYU:Int = 0
+		var innerArcYD:Int = 0
+		var innerRadius:Int = 0
+		var innerArc:UIBezierPath?
 		
-		visitedCells = Grid<Bool>(rows: (gridSize+2), columns: (gridSize+2), defaultValue: false)
-		up = Grid<Bool>(rows: (gridSize+2), columns: (gridSize+2), defaultValue: true)
-		right = Grid<Bool>(rows: (gridSize+2), columns: (gridSize+2), defaultValue: true)
-		down = Grid<Bool>(rows: (gridSize+2), columns: (gridSize+2), defaultValue: true)
-		left = Grid<Bool>(rows: (gridSize+2), columns: (gridSize+2), defaultValue: true)
+		var outerArcXU:Int = 0
+		var outerArcXD:Int = 0
+		var outerArcYU:Int = 0
+		var outerArcYD:Int = 0
+		var outerRadius:Int = 0
+		var outerArc:UIBezierPath?
 		
-		// Initialize perimeter as already visited
-		for x in 0..<gridSize+2 {
-			visitedCells[x,0] = true
-			visitedCells[x,gridSize+1] = true
-		}
+		var upPath:UIBezierPath?
+		var downPath:UIBezierPath?
 		
-		for y in 0..<gridSize+2 {
-			visitedCells[0,y] = true
-			visitedCells[gridSize+1,y] = true
-		}
-		
-		dropWalls(x: 1, y:1, gridSize:gridSize);
-		
-		view = drawView(gridSize:gridSize, screenSize:screenSize)
+		var angle:CGFloat = 0
+		var startAngle:CGFloat = 0
+		var endAngle:CGFloat = 0
 	}
 	
 	/**
-	Visit every cell in the maze grid by picking a random unvisited cell each time. "Drop" the
-	wall between the source and the destination node by marking the appropriate position in the
-	corresponding wall grids as false.
+	Init method
 	
-	:param: x Int x position in the grid of the destination node
-	:param: y Int y position in the grid of the destination node
-	:param: gridSize Int indicating the width and hight of the maze in number of cells, with width = height = gridSize
+	:param: trackWidth Int indicating the width of a track
+	
+	:param: innerSpokesPerQuadrant Int indicating the number of spokes per quadrant
+	
+	:param: screenSize Int indicating the width and hight of the maze, with width = height = screenSize
 	*/
-	func dropWalls(x:Int, y:Int, gridSize: Int) {
-		visitedCells[x,y] = true;
+	init(trackWidth:Int, innerSpokesPerQuadrant:Int, screenSize:Int) {
+		let roomRadius:Int = 2 * trackWidth
+		var numberOfSectorsPerTrack:[Int] = []
+		let numberOfTracks:Int = Int(Int((screenSize - 10 - 2 * roomRadius) / trackWidth) / 2)
+		let mazeCenter:Int = Int(screenSize/2)
 		
-		// Loop while we have unvisited cells
-		while (!visitedCells[x,y + 1] || !visitedCells[x + 1,y] || !visitedCells[x,y - 1] || !visitedCells[x - 1,y]) {
-			
-			// Choose a random destination cell
-			while (true) {
-				let r =  UInt32(arc4random()) % 4
-				if (r == 0 && !visitedCells[x,y + 1]) {
-					up[x,y] = false
-					down[x,y + 1] = false
-					dropWalls(x: x, y: y + 1, gridSize:gridSize)
-					break
-				} else if (r == 1 && !visitedCells[x + 1,y]) {
-					right[x,y] = false
-					left[x + 1, y] = false
-					dropWalls(x: x + 1, y: y, gridSize:gridSize)
-					break
-				} else if (r == 2 && !visitedCells[x,y - 1]) {
-					down[x,y] = false
-					up[x,y - 1] = false
-					dropWalls(x: x, y: y - 1, gridSize:gridSize)
-					break
-				} else if (r == 3 && !visitedCells[x - 1,y]) {
-					left[x,y] = false
-					right[x - 1,y] = false
-					dropWalls(x: x - 1, y: y, gridSize:gridSize)
-					break
-				}
+		if (numberOfTracks < 1) {
+			return
+		}
+		
+		var sectorCount = 4 * innerSpokesPerQuadrant
+		var trackCount = Int(roomRadius/trackWidth)
+		var newTrackCount = trackCount
+		for _ in 0..<numberOfTracks {
+			numberOfSectorsPerTrack.append(sectorCount)
+			newTrackCount += 1
+			if (newTrackCount >= trackCount * 2) {
+				trackCount = newTrackCount
+				sectorCount *= 2
 			}
 		}
 		
-		// Open up the start and end
-		up[1,1] = false
-		down[1,1] = false
-		up[gridSize,gridSize] = false
-		down[gridSize,gridSize] = false
+		view = generateMazeView(numberOfTracks: numberOfTracks, numberOfSectorsPerTrack: numberOfSectorsPerTrack, screenSize:screenSize, mazeCenter: mazeCenter, roomRadius: roomRadius, trackWidth:trackWidth)
 	}
 	
 	/**
-	Draws a line that connects the two end-points from and to.
+	Returns a UIBezierPath representing a line joining the two points
+	from and to.
 	
-	:param: from CGPoint first end-point of the line
-	:param: to CGPoint y second end-point of the line
-	:param: resizeFactor CGFloat scalar with which from and to should be multiplied with
+	:param: from CGPoint representing one end-point of the line
+	
+	:param: from CGPoint representing the other end-point of the line
+	
+	:return: UIBezierPath representing a line joining the two points
 	*/
-	func drawLine(from:CGPoint, to:CGPoint, resizeFactor:CGFloat) {
+	func drawLine(from:CGPoint, to:CGPoint) -> UIBezierPath {
 		let path = UIBezierPath()
-		path.move(to: CGPoint(x:from.x*resizeFactor, y:from.y*resizeFactor))
-		path.addLine(to: CGPoint(x:to.x*resizeFactor, y:to.y*resizeFactor))
-		UIColor.black.setStroke()
-		path.stroke()
+		path.move(to: CGPoint(x: from.x, y: from.y))
+		path.addLine(to: CGPoint(x: to.x, y: to.y))
+		return path
 	}
 	
 	/**
-	Draws the maze on a UIView and returns the view
+	Returns a Sector object represending the sector at the given track and index. A sector object consists of
+	an inner (smaller) arc, an outer (bigger) arc and two lines joining the arc endpoints (upper end point of inner arc is joined with the upper
+	end point of the outer arc by a line. Similarly the lower end point of the inner arc is joined with the lower end point of the outer arc by a line).
 	
-	:param: gridSize Int indicating the width and hight of the maze in number of cells, with width = height = gridSize
-	:param: screenSize Int indicating the width and hight of the view, with width = height = screenSize
+	The lenght of the lines is computed using cosine and sine functions based on the track and sector number.
 	
-	:return: UIView containing the drawn maze
+	Each arc of the sector has an angle ANGLE = TwoPi/#SECTORS_PER_TRACK, starting from an angle sector*ANGLE and ending
+	at an angle of (sector*ANGLE) + ANGLE.
+	
+	:param: trackIndex Int zero-based track index (index 0 is the most inner track)
+	
+	:param: sectorIndex Int zero-based sector index
+	
+	:param: numberOfSectorsPerTrack [Int] Array holding the number of arrays in each track
+	
+	:param: mazeCenter Int indicating the (x,y) center of the maze, with x = y = mazeCenter
+	
+	:param: roomRadius Int the radius of the inner maze room (this room we don't want to segment)
+	
+	:param: trackWidth Int indicating the width of a track
+	
+	:return: Sector representing sector in the circle grid.
 	*/
-	func drawView(gridSize:Int, screenSize:Int) -> UIView {
+	func createSector(trackIndex:Int, sectorIndex:Int, numberOfSectorsPerTrack:[Int], mazeCenter:Int, roomRadius:Int, trackWidth:Int) -> Sector {
+		let result = Sector()
+		
+		result.angle = CGFloat(Double(TwoPi) / Double(numberOfSectorsPerTrack[trackIndex]))
+		result.startAngle = CGFloat(CGFloat(sectorIndex) * result.angle)
+		result.endAngle = result.startAngle + result.angle
+		
+		// Inner Arc
+		result.innerRadius = roomRadius + (trackIndex * trackWidth)
+		result.innerArcXD = Int(CGFloat(mazeCenter) + CGFloat(roomRadius + trackWidth * trackIndex) * cos(TwoPi * CGFloat(sectorIndex) / CGFloat(numberOfSectorsPerTrack[trackIndex])))
+		result.innerArcXU = Int(CGFloat(mazeCenter) + CGFloat(roomRadius + trackWidth * trackIndex) * cos(TwoPi * CGFloat(sectorIndex + 1) / CGFloat(numberOfSectorsPerTrack[trackIndex])))
+		result.innerArcYD = Int(CGFloat(mazeCenter) + CGFloat(roomRadius + trackWidth * trackIndex) * sin(TwoPi * CGFloat(sectorIndex) / CGFloat(numberOfSectorsPerTrack[trackIndex])))
+		result.innerArcYU = Int(CGFloat(mazeCenter) + CGFloat(roomRadius + trackWidth * trackIndex) * sin(TwoPi * CGFloat(sectorIndex + 1) / CGFloat(numberOfSectorsPerTrack[trackIndex])))
+		result.innerArc = UIBezierPath(arcCenter: CGPoint(x: mazeCenter, y: mazeCenter), radius: CGFloat(result.innerRadius), startAngle: result.startAngle, endAngle: result.endAngle, clockwise: true)
+		
+		// Outer Arc
+		result.outerRadius = roomRadius + ((trackIndex + 1) * trackWidth)
+		result.outerArcXD = Int(CGFloat(mazeCenter) + CGFloat(roomRadius + trackWidth * (trackIndex + 1)) * cos(TwoPi * CGFloat(sectorIndex) / CGFloat(numberOfSectorsPerTrack[trackIndex])))
+		result.outerArcXU = Int(CGFloat(mazeCenter) + CGFloat(roomRadius + trackWidth * (trackIndex + 1)) * cos(TwoPi * CGFloat(sectorIndex + 1) / CGFloat(numberOfSectorsPerTrack[trackIndex])))
+		result.outerArcYD = Int(CGFloat(mazeCenter) + CGFloat(roomRadius + trackWidth * (trackIndex + 1)) * sin(TwoPi * CGFloat(sectorIndex) / CGFloat(numberOfSectorsPerTrack[trackIndex])))
+		result.outerArcYU = Int(CGFloat(mazeCenter) + CGFloat(roomRadius + trackWidth * (trackIndex + 1)) * sin(TwoPi * CGFloat(sectorIndex + 1) / CGFloat(numberOfSectorsPerTrack[trackIndex])))
+		result.outerArc = UIBezierPath(arcCenter: CGPoint(x: mazeCenter, y: mazeCenter), radius: CGFloat(result.outerRadius), startAngle: result.startAngle, endAngle: result.endAngle, clockwise: true)
+		
+		result.downPath = drawLine(from: CGPoint(x: result.innerArcXD, y: result.innerArcYD), to: CGPoint(x: result.outerArcXD, y: result.outerArcYD))
+		result.upPath = drawLine(from: CGPoint(x: result.innerArcXU, y: result.innerArcYU), to: CGPoint(x: result.outerArcXU, y: result.outerArcYU))
+		
+		return result
+	}
+	
+	/**
+	Generates the Sectors for every track and adds them to a separate array for each track. It returns
+	an [[Sector]] (array of arrays), where array[t][s] holds the sth Sector of track t.
+	
+	
+	:param: numberOfTracks Int representing the total number of tracks
+	
+	:param: numberOfSectorsPerTrack [Int] Array holding the number of arrays in each track
+	
+	:param: mazeCenter Int indicating the (x,y) center of the maze, with x = y = mazeCenter
+	
+	:param: roomRadius Int the radius of the inner maze room (this room we don't want to segment)
+	
+	:param: trackWidth Int indicating the width of a track
+	
+	:return: [[Sector]] array holding every Sector for each track ([track][sector])
+	*/
+	func generateGrid(numberOfTracks:Int, numberOfSectorsPerTrack:[Int], mazeCenter:Int, roomRadius:Int, trackWidth:Int) -> [[Sector]]  {
+		var result:[[Sector]] = []
+		for t in 1...numberOfTracks {
+			result.append([])
+			for s in 0..<numberOfSectorsPerTrack[t - 1] {
+				let sector = createSector(trackIndex:(t - 1), sectorIndex:s, numberOfSectorsPerTrack:numberOfSectorsPerTrack, mazeCenter:mazeCenter, roomRadius:roomRadius, trackWidth:trackWidth)
+				result[t - 1].append(sector)
+			}
+		}
+		
+		return result
+	}
+	
+	/**
+	Generates the maze and paints it on a UIView. Returns the UIView once the maze is generated and painted.
+	
+	
+	:param: numberOfTracks Int representing the total number of tracks
+	
+	:param: numberOfSectorsPerTrack [Int] Array holding the number of arrays in each track
+	
+	:param: screenSize Int indicating the width and height of the view, with width = height = screenSize
+	
+	:param: mazeCenter Int indicating the (x,y) center of the maze, with x = y = mazeCenter
+	
+	:param: roomRadius Int the radius of the inner maze room (this room we don't want to segment)
+	
+	:param: trackWidth Int indicating the width of a track
+	
+	:return: UIView view with the painted maze on it
+	*/
+	func generateMazeView(numberOfTracks:Int, numberOfSectorsPerTrack:[Int], screenSize:Int, mazeCenter:Int, roomRadius:Int, trackWidth:Int) -> UIView {
+		var result:UIView!
+		
+		// Generate circular grid
+		var sectorsOfTrack:[[Sector]] = generateGrid(numberOfTracks:numberOfTracks, numberOfSectorsPerTrack:numberOfSectorsPerTrack, mazeCenter:mazeCenter, roomRadius:roomRadius, trackWidth:trackWidth)
+		
+		// Init array of visited sectors
+		var visitedSectors:[[Bool]] = []
+		for _ in 0...numberOfTracks {
+			visitedSectors.append(Array(repeating:false, count: numberOfSectorsPerTrack[numberOfTracks - 1]))
+		}
+		
+		// Randomly remove any edges and arcs from the above generated grid
+		createPath(visitedSectors: &visitedSectors, numberOfSectorsPerTrack:numberOfSectorsPerTrack, sectorsOfTrack:sectorsOfTrack, numberOfTracks:numberOfTracks, trackIndex:0, sectorIndex:0)
+		
+		// Do the drawing
 		let viewSize = CGSize(width: screenSize, height: screenSize)
-		let result:UIView = UIView(frame: CGRect(origin: CGPoint.zero, size: viewSize))
-		result.backgroundColor = UIColor(white: 1.0, alpha: 1.0)
+		result = UIView(frame: CGRect(origin: CGPoint.zero, size: viewSize))
+		result.backgroundColor = UIColor.white
 		UIGraphicsBeginImageContextWithOptions(viewSize, false, 0)
+		UIColor.black.setStroke()
 		
-		let resizeFactor = viewSize.width/CGFloat(gridSize + 2)
+		// Draw center
+		UIColor.black.setFill()
+		let circlePath = UIBezierPath(arcCenter: CGPoint(x: mazeCenter, y: mazeCenter), radius: CGFloat(4), startAngle: 0.0, endAngle: TwoPi, clockwise: true)
+		circlePath.stroke()
+		circlePath.fill()
 		
-		for x in 1..<gridSize+1 {
-			for y in 1..<gridSize+1 {
-				
-				if (down[x,y]) {
-					drawLine(from: CGPoint(x:x,y:y), to: CGPoint(x:x+1,y:y), resizeFactor:resizeFactor)
-				}
-				
-				if (up[x,y]) {
-					drawLine(from: CGPoint(x:x,y:y+1), to: CGPoint(x:x+1,y:y+1), resizeFactor:resizeFactor)
-				}
-				
-				if (left[x,y]) {
-					drawLine(from: CGPoint(x:x,y:y), to: CGPoint(x:x,y:y+1), resizeFactor:resizeFactor)
-				}
-				if (right[x,y]) {
-					drawLine(from: CGPoint(x:x+1,y:y), to: CGPoint(x:x+1,y:y+1), resizeFactor:resizeFactor)
-				}
-				
+		// open up start
+		let numberOfSectorsInnerTrack = Int(numberOfSectorsPerTrack[0])
+		let randomInnerSectorIndex =  Int(UInt32(arc4random()) % UInt32(numberOfSectorsInnerTrack))
+		let randomInnerSector = sectorsOfTrack[0][randomInnerSectorIndex]
+		randomInnerSector.innerArc!.removeAllPoints()
+		
+		// open up end
+		let numberOfSectorsOuterTrack = Int(numberOfSectorsPerTrack[numberOfTracks - 1])
+		let randomOuterSectorIndex =  Int(UInt32(arc4random()) % UInt32(numberOfSectorsOuterTrack))
+		let randomOuterSector = sectorsOfTrack[numberOfTracks - 1][randomOuterSectorIndex]
+		randomOuterSector.outerArc!.removeAllPoints()
+		
+		// Draw arcs and lines
+		for t in 1...numberOfTracks {
+			for s in 0..<numberOfSectorsPerTrack[t - 1] {
+				let sector = sectorsOfTrack[t - 1][s]
+				sector.innerArc!.stroke()
+				sector.outerArc!.stroke()
+				sector.upPath!.stroke()
+				sector.downPath!.stroke()
 			}
 		}
 		
 		result.layer.contents = UIGraphicsGetImageFromCurrentImageContext()?.cgImage
 		UIGraphicsEndImageContext()
+		
 		return result
 	}
+	
+	/**
+	Creates a path by visiting all the sectors in the maze grid.
+	
+	:param: visitedSectors [[Bool]] with [t][s] == true if sector s of track t has already been visited. false otherwise.
+	
+	:param: numberOfSectorsPerTrack [Int] Array holding the number of arrays in each track
+	
+	:param: sectorsOfTrack [[Sector]] (array of arrays), where array[t][s] holds the sth Sector of track t.
+	
+	:param: numberOfTracks Int indicating the total number of tracks
+	
+	:param: trackIndex Int current track index
+	
+	:param: sectorIndex Int current sector index
+	*/
+	func createPath( visitedSectors:inout [[Bool]], numberOfSectorsPerTrack:[Int], sectorsOfTrack:[[Sector]], numberOfTracks:Int, trackIndex:Int, sectorIndex:Int) {
+		print("rackIndex \(trackIndex) \(sectorIndex)")
+		if sectorIndex > 0{
+		var unvisitedSectorExists = ((sectorIndex > 0 && !visitedSectors[trackIndex][sectorIndex - 1]) || (sectorIndex == 0 && !visitedSectors[trackIndex][sectorIndex - 1 + numberOfSectorsPerTrack[trackIndex]]))
+		unvisitedSectorExists = unvisitedSectorExists || ((trackIndex > 0) && (numberOfSectorsPerTrack[trackIndex] == numberOfSectorsPerTrack[trackIndex - 1]) && (!visitedSectors[trackIndex - 1][sectorIndex]))
+		unvisitedSectorExists = unvisitedSectorExists || ((trackIndex > 0) && (numberOfSectorsPerTrack[trackIndex] != numberOfSectorsPerTrack[trackIndex - 1]) && (!visitedSectors[trackIndex - 1][sectorIndex / 2]))
+		unvisitedSectorExists = unvisitedSectorExists || (sectorIndex < numberOfSectorsPerTrack[trackIndex] - 1 && !visitedSectors[trackIndex][sectorIndex + 1])
+		unvisitedSectorExists = unvisitedSectorExists || (sectorIndex == numberOfSectorsPerTrack[trackIndex] - 1 && !visitedSectors[trackIndex][sectorIndex + 1 - numberOfSectorsPerTrack[trackIndex]])
+		unvisitedSectorExists = unvisitedSectorExists || ((trackIndex < numberOfTracks - 1) && (numberOfSectorsPerTrack[trackIndex] == numberOfSectorsPerTrack[trackIndex + 1]) && (!visitedSectors[trackIndex + 1][sectorIndex]))
+		unvisitedSectorExists = unvisitedSectorExists
+			|| ((trackIndex < numberOfTracks - 1) && (numberOfSectorsPerTrack[trackIndex] != numberOfSectorsPerTrack[trackIndex + 1]) && ((!visitedSectors[trackIndex + 1][sectorIndex * 2]) || (!visitedSectors[trackIndex + 1][sectorIndex * 2 + 1])))
+		
+		OUTERWHILE: while (unvisitedSectorExists) {
+			// Make a list of up to 5 ways that the trail can be extended.
+			INNERWHILE: while (true) {
+				var numberOfPossibleDirections:Int = 0
+				var direction:[Direction] = Array(repeating:Direction.NULLNODE, count: 5)
+				var distance:[Int] = Array(repeating:0, count: 5)
+				
+				if ((sectorIndex > 0 && !visitedSectors[trackIndex][sectorIndex - 1]) || (sectorIndex == 0 && !visitedSectors[trackIndex][sectorIndex - 1 + numberOfSectorsPerTrack[trackIndex]])) {
+					direction[numberOfPossibleDirections] = .LEFT
+					distance[numberOfPossibleDirections] = 1
+					numberOfPossibleDirections += 1
+				}
+				
+				if (trackIndex > 0) {
+					if (numberOfSectorsPerTrack[trackIndex] == numberOfSectorsPerTrack[trackIndex - 1]) {
+						if (!visitedSectors[trackIndex - 1][sectorIndex]) {
+							direction[numberOfPossibleDirections] = .DOWN
+							distance[numberOfPossibleDirections] = 1
+							numberOfPossibleDirections += 1
+						}
+					} else {
+						if (!visitedSectors[trackIndex - 1][sectorIndex / 2]) {
+							direction[numberOfPossibleDirections] = .DOWN
+							distance[numberOfPossibleDirections] = 1
+							numberOfPossibleDirections += 1
+						}
+					}
+				}
+				
+				if ((sectorIndex < numberOfSectorsPerTrack[trackIndex] - 1 && !visitedSectors[trackIndex][sectorIndex + 1]) || (sectorIndex == numberOfSectorsPerTrack[trackIndex] - 1 && !visitedSectors[trackIndex][sectorIndex + 1 - numberOfSectorsPerTrack[trackIndex]])) {
+					direction[numberOfPossibleDirections] = .RIGHT
+					distance[numberOfPossibleDirections] = 1
+					numberOfPossibleDirections += 1
+				}
+				
+				if (trackIndex < numberOfTracks - 1) {
+					if (numberOfSectorsPerTrack[trackIndex] == numberOfSectorsPerTrack[trackIndex + 1]) {
+						if (!visitedSectors[trackIndex + 1][sectorIndex]) {
+							direction[numberOfPossibleDirections] = .UP
+							distance[numberOfPossibleDirections] = 1
+							numberOfPossibleDirections += 1
+						}
+					} else {
+						if (!visitedSectors[trackIndex + 1][sectorIndex * 2]) {
+							direction[numberOfPossibleDirections] = .UP
+							distance[numberOfPossibleDirections] = 1
+							numberOfPossibleDirections += 1
+						}
+						if (!visitedSectors[trackIndex + 1][sectorIndex * 2 + 1]) {
+							direction[numberOfPossibleDirections] = .UPDIAGONAL
+							distance[numberOfPossibleDirections] = 1
+							numberOfPossibleDirections += 1
+						}
+					}
+					
+				}
+				
+				// Now that we have got our possible directions for a sector in a track we can
+				// randomly pick one and drop the wall
+				if (numberOfPossibleDirections > 0) {
+					print(UInt32(arc4random()) % 5)
+					let random =  Int(UInt32(arc4random()) % 5)
+					let dir:Direction = direction[Int(random)]
+					var newSectorIndex = sectorIndex
+					var newTrackIndex = trackIndex
+					var fromSectorObj:Sector!
+					var toSectorObj:Sector!
+					
+					if (dir == .LEFT) {
+						newSectorIndex -= distance[random]
+						if (newSectorIndex < 0) {
+							newSectorIndex += numberOfSectorsPerTrack[trackIndex]
+						}
+						
+						fromSectorObj = sectorsOfTrack[trackIndex][sectorIndex]
+						toSectorObj = sectorsOfTrack[newTrackIndex][newSectorIndex]
+						fromSectorObj.downPath!.removeAllPoints()
+						toSectorObj.upPath!.removeAllPoints()
+						
+						visitedSectors[newTrackIndex][newSectorIndex] = true
+						
+						createPath(visitedSectors: &visitedSectors, numberOfSectorsPerTrack:numberOfSectorsPerTrack, sectorsOfTrack:sectorsOfTrack, numberOfTracks:numberOfTracks, trackIndex:newTrackIndex, sectorIndex:newSectorIndex)
+						break INNERWHILE
+					}
+					
+					if (dir == .RIGHT) {
+						newSectorIndex += distance[random]
+						if (newSectorIndex >= numberOfSectorsPerTrack[trackIndex]) {
+							newSectorIndex -= numberOfSectorsPerTrack[trackIndex]
+						}
+						
+						fromSectorObj = sectorsOfTrack[trackIndex][sectorIndex]
+						toSectorObj = sectorsOfTrack[newTrackIndex][newSectorIndex]
+						fromSectorObj.upPath!.removeAllPoints()
+						toSectorObj.downPath!.removeAllPoints()
+						
+						
+						visitedSectors[newTrackIndex][newSectorIndex] = true
+						createPath(visitedSectors: &visitedSectors, numberOfSectorsPerTrack:numberOfSectorsPerTrack, sectorsOfTrack:sectorsOfTrack, numberOfTracks:numberOfTracks, trackIndex:newTrackIndex, sectorIndex:newSectorIndex)
+						break INNERWHILE
+					}
+					
+					if (dir == .DOWN) {
+						newTrackIndex -= distance[random];
+						if (numberOfSectorsPerTrack[trackIndex] > numberOfSectorsPerTrack[trackIndex - 1]) {
+							newSectorIndex /= 2
+						}
+						
+						fromSectorObj = sectorsOfTrack[trackIndex][sectorIndex]
+						toSectorObj = sectorsOfTrack[newTrackIndex][newSectorIndex]
+						fromSectorObj.innerArc!.removeAllPoints()
+						toSectorObj.outerArc!.removeAllPoints()
+						visitedSectors[newTrackIndex][newSectorIndex] = true
+						createPath(visitedSectors: &visitedSectors, numberOfSectorsPerTrack:numberOfSectorsPerTrack, sectorsOfTrack:sectorsOfTrack, numberOfTracks:numberOfTracks, trackIndex:newTrackIndex, sectorIndex:newSectorIndex)
+						break INNERWHILE
+					}
+					
+					if (dir == .UP) {
+						newTrackIndex += distance[random];
+						if (numberOfSectorsPerTrack[trackIndex + 1] > numberOfSectorsPerTrack[trackIndex]) {
+							newSectorIndex *= 2
+						}
+						
+						fromSectorObj = sectorsOfTrack[trackIndex][sectorIndex]
+						toSectorObj = sectorsOfTrack[newTrackIndex][newSectorIndex]
+						fromSectorObj.outerArc!.removeAllPoints()
+						toSectorObj.innerArc!.removeAllPoints()
+						
+						visitedSectors[newTrackIndex][newSectorIndex] = true
+						createPath(visitedSectors: &visitedSectors, numberOfSectorsPerTrack:numberOfSectorsPerTrack, sectorsOfTrack:sectorsOfTrack, numberOfTracks:numberOfTracks, trackIndex:newTrackIndex, sectorIndex:newSectorIndex)
+						break INNERWHILE
+					}
+					
+					if (dir == .UPDIAGONAL) {
+						newTrackIndex += distance[random];
+						if (numberOfSectorsPerTrack[trackIndex + 1] > numberOfSectorsPerTrack[trackIndex]) {
+							newSectorIndex = 2 * sectorIndex + 1
+						}
+						
+						fromSectorObj = sectorsOfTrack[trackIndex][sectorIndex]
+						toSectorObj = sectorsOfTrack[newTrackIndex][newSectorIndex]
+						fromSectorObj.outerArc!.removeAllPoints()
+						toSectorObj.innerArc!.removeAllPoints()
+						
+						visitedSectors[newTrackIndex][newSectorIndex] = true
+						createPath(visitedSectors: &visitedSectors, numberOfSectorsPerTrack:numberOfSectorsPerTrack, sectorsOfTrack:sectorsOfTrack, numberOfTracks:numberOfTracks, trackIndex:newTrackIndex, sectorIndex:newSectorIndex)
+						break INNERWHILE
+					}
+				} else {
+					break OUTERWHILE
+				}
+				
+			} // end of INNERWHILE
+		} // end of OUTERWHILE
+		}
+	}
+	
+	
 }
-
-
-var maze = Maze(gridSize: 30, screenSize: 300)
-XCPlaygroundPage.currentPage.liveView = maze.view

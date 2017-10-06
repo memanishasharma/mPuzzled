@@ -106,18 +106,23 @@ extension HomeScreenViewController: UITableViewDelegate,UITableViewDataSource{
 				present(viewController, animated: true, completion: nil)
 			}
 		}else if cell.nameLabel.text == "TIME PASSER"{
-		let storyboard = UIStoryboard(name: "TimePasser", bundle: nil)
-		if let viewController = storyboard.instantiateViewController(withIdentifier: "TimePasserViewController") as? TimePasserViewController {
-			present(viewController, animated: true, completion: nil)
+			let storyboard = UIStoryboard(name: "TimePasser", bundle: nil)
+			if let viewController = storyboard.instantiateViewController(withIdentifier: "TimePasserViewController") as? TimePasserViewController {
+				present(viewController, animated: true, completion: nil)
+			}
+		}else if cell.nameLabel.text == "REACH CENTER"{
+			let storyboard = UIStoryboard(name: "ReachCenter", bundle: nil)
+			if let viewController = storyboard.instantiateViewController(withIdentifier: "CircleCenterGameViewController") as? CircleCenterGameViewController {
+				present(viewController, animated: true, completion: nil)
+			}
 		}
-	}
-//		}else if cell.nameLabel.text == "WORD GEEK"{
-//			let storyboard = UIStoryboard(name: "CrossWord", bundle: nil)
-//			if let viewController = storyboard.instantiateViewController(withIdentifier: "WordCrossWordViewController") as? WordCrossWordViewController {
-//				present(viewController, animated: true, completion: nil)
-//			}
-//		}
-		
-		return nil
-	}
+			//		}else if cell.nameLabel.text == "WORD GEEK"{
+			//			let storyboard = UIStoryboard(name: "CrossWord", bundle: nil)
+			//			if let viewController = storyboard.instantiateViewController(withIdentifier: "WordCrossWordViewController") as? WordCrossWordViewController {
+			//				present(viewController, animated: true, completion: nil)
+			//			}
+			//		}
+			
+			return nil
+		}
 }
