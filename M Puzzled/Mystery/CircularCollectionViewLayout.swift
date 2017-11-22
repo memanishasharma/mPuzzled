@@ -73,19 +73,24 @@ class CircularCollectionViewLayout: UICollectionViewLayout {
 			endIndex = 0
 			startIndex = 0
 		}
+		print("collectionView!.numberOfItems \(endIndex)")
+		if startIndex != endIndex{
 		attributesList = (startIndex...endIndex).map { (i) -> CircularCollectionViewLayoutAttributes in
 			let attributes = CircularCollectionViewLayoutAttributes(forCellWith: IndexPath(item: i, section: 0))
 			attributes.size = self.itemSize
 			attributes.center = CGPoint(x: centerX, y: self.collectionView!.bounds.midY)
 			attributes.angle = self.angle + (self.anglePerItem*CGFloat(i))
 			attributes.anchorPoint = CGPoint(x: 0.5, y: anchorPointY)
+			print("attributes \(attributes)")
 			return attributes
+		}
 		}
 	}
 	override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
 		return attributesList[indexPath.row]
 	}
 	override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
+		print("attributesList \(attributesList)")
 		return attributesList
 	}
 	override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {

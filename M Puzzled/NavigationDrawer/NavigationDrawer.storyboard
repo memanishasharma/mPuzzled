@@ -130,6 +130,7 @@
         <!--Right View Controller-->
         <scene sceneID="aWZ-5L-8R4">
             <objects>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="7hT-fG-8W0" userLabel="First Responder" sceneMemberID="firstResponder"/>
                 <viewController storyboardIdentifier="RightViewController" id="cQE-2H-KQ8" customClass="RightViewController" customModule="M_Puzzled" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="zPE-UH-daA">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
@@ -237,7 +238,6 @@
                         <viewLayoutGuide key="safeArea" id="yq3-RG-mWB"/>
                     </view>
                 </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="7hT-fG-8W0" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="630" y="161"/>
         </scene>

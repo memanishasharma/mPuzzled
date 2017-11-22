@@ -17,7 +17,14 @@ class CircleCenterGameViewController  : UIViewController{
 	override func viewDidLoad() {
 		super.viewDidLoad()
 
-		let scene = BuildingBackScreenSKScene(size: gameView.bounds.size)
+		gameView.backgroundColor = UIColor.FlatColor.materialColor.Alizarin.withAlphaComponent(0.6)
+		
+		gameView.drawBorder()
+		gameView.dropShadow()
+		print("UIScreen.main.boundse \(UIScreen.main.bounds)")
+		print("gameView.bounds.size \(gameView.bounds.size) \(gameView.bounds)")
+		let scene = SquaremazeSKScene(size: UIScreen.main.bounds.size)
+		
 		let skView = gameView as! SKView
 		skView.showsFPS = true
 		skView.showsNodeCount = true
@@ -28,7 +35,6 @@ class CircleCenterGameViewController  : UIViewController{
 		skView.showsFPS = true
 		skView.showsNodeCount = true
 		skView.ignoresSiblingOrder = true
-		//scene.scaleMode = .aspectFit
 		
 		skView.presentScene(scene)
 		

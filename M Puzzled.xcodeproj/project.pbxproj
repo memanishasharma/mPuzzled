@@ -33,9 +33,7 @@
 		13B099ED1F6FCDB600D40362 /* PuzzleData+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B099EB1F6FCDB600D40362 /* PuzzleData+CoreDataProperties.swift */; };
 		13BBF6F61F6C316400905347 /* TimePasserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13BBF6F51F6C316400905347 /* TimePasserViewController.swift */; };
 		13BBF6F81F6C317D00905347 /* TimePasser.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 13BBF6F71F6C317D00905347 /* TimePasser.storyboard */; };
-		13BCF04F1F84B56600883504 /* BuildingBackScreenSKScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13BCF04E1F84B56600883504 /* BuildingBackScreenSKScene.swift */; };
 		13BCF0511F84B5C100883504 /* CircleCenterGameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13BCF0501F84B5C100883504 /* CircleCenterGameViewController.swift */; };
-		13BCF0531F85100500883504 /* SpiralNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13BCF0521F85100500883504 /* SpiralNode.swift */; };
 		13C1354A1F72178A00CEF57F /* ContainerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13C135491F72178A00CEF57F /* ContainerViewController.swift */; };
 		13C1354D1F72186900CEF57F /* LeftViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13C1354C1F72186900CEF57F /* LeftViewController.swift */; };
 		13C1354F1F72187F00CEF57F /* RightViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13C1354E1F72187F00CEF57F /* RightViewController.swift */; };
@@ -49,6 +47,7 @@
 		13DEDB5D1F6AA480007BB113 /* roboto_light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 13DEDB5C1F6AA47F007BB113 /* roboto_light.ttf */; };
 		13DEDB611F6AA4CB007BB113 /* CustomizeExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13DEDB5E1F6AA4CA007BB113 /* CustomizeExtensions.swift */; };
 		13DEDB621F6AA4CB007BB113 /* CustomColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13DEDB5F1F6AA4CA007BB113 /* CustomColors.swift */; };
+		13DEFEFE1F973B5D00C894F1 /* SquaremazeSkScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13DEFEFD1F973B5D00C894F1 /* SquaremazeSkScene.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -101,9 +100,7 @@
 		13B099EB1F6FCDB600D40362 /* PuzzleData+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PuzzleData+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		13BBF6F51F6C316400905347 /* TimePasserViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimePasserViewController.swift; sourceTree = "<group>"; };
 		13BBF6F71F6C317D00905347 /* TimePasser.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = TimePasser.storyboard; sourceTree = "<group>"; };
-		13BCF04E1F84B56600883504 /* BuildingBackScreenSKScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildingBackScreenSKScene.swift; sourceTree = "<group>"; };
 		13BCF0501F84B5C100883504 /* CircleCenterGameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircleCenterGameViewController.swift; sourceTree = "<group>"; };
-		13BCF0521F85100500883504 /* SpiralNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpiralNode.swift; sourceTree = "<group>"; };
 		13C135491F72178A00CEF57F /* ContainerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerViewController.swift; sourceTree = "<group>"; };
 		13C1354C1F72186900CEF57F /* LeftViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeftViewController.swift; sourceTree = "<group>"; };
 		13C1354E1F72187F00CEF57F /* RightViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RightViewController.swift; sourceTree = "<group>"; };
@@ -117,6 +114,7 @@
 		13DEDB5C1F6AA47F007BB113 /* roboto_light.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = roboto_light.ttf; sourceTree = "<group>"; };
 		13DEDB5E1F6AA4CA007BB113 /* CustomizeExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomizeExtensions.swift; sourceTree = "<group>"; };
 		13DEDB5F1F6AA4CA007BB113 /* CustomColors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomColors.swift; sourceTree = "<group>"; };
+		13DEFEFD1F973B5D00C894F1 /* SquaremazeSkScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SquaremazeSkScene.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -296,13 +294,11 @@
 		13C135481F72153300CEF57F /* ReachCenter */ = {
 			isa = PBXGroup;
 			children = (
+				13C177551F87D33400DD2DCB /* Common */,
 				134CEE7D1F7695C8003DF323 /* ReachCenterSKScene.swift */,
 				137373131F73D66100DD9FC8 /* MazeCreator.swift */,
 				134CEE711F7673C0003DF323 /* ReachCenterViewController.swift */,
 				134CEE731F76749D003DF323 /* ReachCenter.storyboard */,
-				13BCF04E1F84B56600883504 /* BuildingBackScreenSKScene.swift */,
-				13BCF0501F84B5C100883504 /* CircleCenterGameViewController.swift */,
-				13BCF0521F85100500883504 /* SpiralNode.swift */,
 			);
 			path = ReachCenter;
 			sourceTree = "<group>";
@@ -316,6 +312,15 @@
 				13C135501F7218DB00CEF57F /* NavigationDrawer.storyboard */,
 			);
 			path = NavigationDrawer;
+			sourceTree = "<group>";
+		};
+		13C177551F87D33400DD2DCB /* Common */ = {
+			isa = PBXGroup;
+			children = (
+				13BCF0501F84B5C100883504 /* CircleCenterGameViewController.swift */,
+				13DEFEFD1F973B5D00C894F1 /* SquaremazeSkScene.swift */,
+			);
+			path = Common;
 			sourceTree = "<group>";
 		};
 		13DEDB5B1F6AA38D007BB113 /* Font */ = {
@@ -474,11 +479,10 @@
 				13DE68531F6ABAF300D1B4F0 /* CircularCollectionViewLayout.swift in Sources */,
 				1397D9701F6A9E8E004E4979 /* HomeItem.swift in Sources */,
 				13BCF0511F84B5C100883504 /* CircleCenterGameViewController.swift in Sources */,
-				13BCF0531F85100500883504 /* SpiralNode.swift in Sources */,
-				13BCF04F1F84B56600883504 /* BuildingBackScreenSKScene.swift in Sources */,
 				13DEDB621F6AA4CB007BB113 /* CustomColors.swift in Sources */,
 				1397D92A1F6A90DD004E4979 /* AppDelegate.swift in Sources */,
 				13DEDB611F6AA4CB007BB113 /* CustomizeExtensions.swift in Sources */,
+				13DEFEFE1F973B5D00C894F1 /* SquaremazeSkScene.swift in Sources */,
 				13B099E91F6FBFA900D40362 /* CoreDataStack.swift in Sources */,
 				134CEE7E1F7695C8003DF323 /* ReachCenterSKScene.swift in Sources */,
 				1397D9721F6A9EAE004E4979 /* HomeItemCell.swift in Sources */,

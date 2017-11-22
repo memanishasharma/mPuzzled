@@ -24,7 +24,6 @@ class MysteryListViewController:UIViewController{
 	var heading:String = ""
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		collectionView!.register(UINib(nibName: "CircularCollectionViewCell", bundle: nil), forCellWithReuseIdentifier: reuseIdentifier)
 		topCardBg.drawBorder()
 		topCardBg.dropShadow()
 		closeView.drawBorder()
@@ -39,17 +38,21 @@ class MysteryListViewController:UIViewController{
 			do{
 				if let data = try context.fetch(fetchRequest) as? [PuzzleData]{
 					self.puzzleData = data
+					print("self.puzzleData  \(self.puzzleData.count)")
 				}
 			}catch{
 				print("Error in fetching data")
 			}
 			DispatchQueue.main.async(execute: {
-				let imageView = UIImageView(image: UIImage(named: "bg-dark.jpg"))
-				imageView.contentMode = UIViewContentMode.scaleAspectFill
-				
-				self.collectionView!.backgroundView = imageView
-				self.collectionView.delegate = self
-				self.collectionView.dataSource = self
+				if self.puzzleData.count != 0{
+					let imageView = UIImageView(image: UIImage(named: "bg-dark.jpg"))
+					imageView.contentMode = UIViewContentMode.scaleAspectFill
+					self.collectionView!.register(UINib(nibName: "CircularCollectionViewCell", bundle: nil), forCellWithReuseIdentifier: self.reuseIdentifier)
+					
+					self.collectionView!.backgroundView = imageView
+					self.collectionView.delegate = self
+					self.collectionView.dataSource = self
+				}
 			})
 		})
 	}
