@@ -87,6 +87,7 @@ extension HomeScreenViewController: UITableViewDelegate,UITableViewDataSource{
 		cell.cardBg.dropShadow()
 	    cell.iconImageView.image = cell.iconImageView.image!.withRenderingMode(.alwaysTemplate)
 		cell.iconImageView.tintColor = UIColor.white
+		cell.iconImageView.image = UIImage(named: "glassPNG")
 		return cell
 	}
 	

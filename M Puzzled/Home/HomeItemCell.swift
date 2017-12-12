@@ -19,5 +19,6 @@ class HomeItemCell: UITableViewCell {
 	func useMember(_ member:HomeItem) {
 		nameLabel.text = member.title?.uppercased()
 		nameLabel.font = UIFont(name: "Roboto-Light", size: 20)
+		
 	}
 }

@@ -107,7 +107,7 @@ class CoreDataStack:NSObject{
 	
 	lazy var managedObjectModel: NSManagedObjectModel = {
 		let modelURL = Bundle.main.url(forResource: "M_Puzzled", withExtension: "momd")!
-		return NSManagedObjectModel(contentsOf: modelURL)
+		return NSManagedObjectModel(contentsOf: modelURL)!
 	}()
 	
 	@objc func backendContextDidSaved(_ notification: Notification) {
